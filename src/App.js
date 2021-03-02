@@ -1,57 +1,72 @@
 import { useState, useEffect, useCallback } from "react";
-import { CITIES, DESCRIPTIONS}  from './constants/commons';
+import { LOCATIONS, DESCRIPTIONS}  from './constants/commons';
 import './App.css';
+
+import JobDetail from "./components/job-detail"
 
 const App = () => {
   const [jobPosts, setJobPosts] = useState([]);
   const [description, setDescription] = useState('');
-  const [city, setCity] = useState('');
+  const [location, setLocation] = useState('');
 
   const getJobPost = useCallback(
-    () => {
-      fetch(`http://127.0.0.1:3333/positions?description=${description}&location=${city}`)
+    (jobDescription = '',jobLocation ='') => {
+      fetch(`http://127.0.0.1:3333/positions?description=${jobDescription}&location=${jobLocation}`)
         .then(response => response.json())
         .then(data => setJobPosts(data));
     },
-    [description,city],
+    [],
   )
 
-useEffect(() => {
-  if(description || city){
-      getJobPost();
-    }
-}, [description, city, getJobPost])
+  useEffect(() => {
+    getJobPost('','');
+  }, [getJobPost])
 
   return (
     <div className="App">
       <header className="App-header">
-      <label>
+      <label className='input_label'>
         Job Description:
-        <input list="description" value={description} onChange={(event) => setDescription(event.target.value)} />
+        <input
+          className='input'
+          list="description"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
         <datalist id="description">
           {DESCRIPTIONS.map((description) => <option value={description} />)}
         </datalist>
       </label>
-      <label>
+      <label className='input_label'>
         Location:
-        <input  list="location" value={city} onChange={(event) => setCity(event.target.value)} />
+        <input
+          className='input'
+          list="location"
+          value={location}
+          onChange={(event) => setLocation(event.target.value)}
+        />
         <datalist id="location">
-          {CITIES.map((jobCity) =>  <option value={jobCity} />)}
+          {LOCATIONS.map((jobLocation) =>  <option value={jobLocation} />)}
         </datalist>
       </label>
+      <button
+        className="search_button"
+        onClick={() => getJobPost(description,location)}
+        >
+        Search
+      </button>
       </header>
-      <div className="jobs-container">
+      <div className="jobs_container">
           {
             jobPosts.map((jobPost) => {
-
-
-            return ( <details>
-                  <summary> {jobPost.title}</summary>
-                  <p><a href={jobPost.company_url}> {jobPost.company} </a></p>
-                  <p  dangerouslySetInnerHTML={{
-                      __html: jobPost.description
-                    }}></p>
-                </details>
+            return ( 
+              <JobDetail
+                key={jobPost.id}
+                title = {jobPost.title}
+                description={jobPost.description}
+                companyName={jobPost.company}
+                companyURL={jobPost.company_url}
+              />
                 )
           })
           }
